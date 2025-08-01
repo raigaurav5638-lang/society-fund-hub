@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Home, 
   Heart, 
@@ -9,7 +12,9 @@ import {
   Receipt, 
   Building, 
   Menu,
-  Settings
+  Globe,
+  LogOut,
+  Calculator
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -17,16 +22,23 @@ interface NavigationProps {
   onPageChange: (page: string) => void;
 }
 
-const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'donations', label: 'Donations', icon: Heart },
-  { id: 'collections', label: 'Collections', icon: PiggyBank },
-  { id: 'expenses', label: 'Expenses', icon: Receipt },
-  { id: 'flats', label: 'Flats', icon: Building },
-];
-
 export default function Navigation({ currentPage, onPageChange }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { signOut, profile } = useAuth();
+  const { t, i18n } = useTranslation();
+
+  const navigationItems = [
+    { id: 'dashboard', label: t('dashboard'), icon: Home },
+    { id: 'donations', label: t('donations'), icon: Heart },
+    { id: 'collections', label: t('collections'), icon: PiggyBank },
+    { id: 'expenses', label: t('expenses'), icon: Receipt },
+    { id: 'fixed_expenses', label: t('fixed_expenses'), icon: Calculator },
+    { id: 'flats', label: t('flats'), icon: Building },
+  ];
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   const NavigationContent = () => (
     <nav className="flex flex-col space-y-2">
@@ -63,6 +75,34 @@ export default function Navigation({ currentPage, onPageChange }: NavigationProp
           </div>
           <div className="flex flex-col flex-1 overflow-y-auto p-4">
             <NavigationContent />
+          </div>
+          
+          {/* Footer with language and logout */}
+          <div className="p-4 border-t border-border space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {profile?.role === 'admin' ? 'Admin' : 'User'}: {profile?.username}
+            </div>
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <Select value={i18n.language} onValueChange={changeLanguage}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="hi">हिंदी</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={signOut}
+              className="w-full text-xs"
+            >
+              <LogOut className="h-3 w-3 mr-2" />
+              {t('logout')}
+            </Button>
           </div>
         </div>
       </aside>
